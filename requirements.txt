@@ -1,0 +1,4 @@
+PyQt5
+requests
+psycopg2-binary
+nose2

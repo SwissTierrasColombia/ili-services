@@ -1,0 +1,42 @@
+version: "3"
+services:
+  postgres:
+    image: kartoza/postgis:${POSTGIS_VERSION_TAG}
+    volumes:
+      - postgis-data:/var/lib/postgresql
+      - dbbackups:/backups
+    ports:
+      - ${EXTERNAL_POSTGRES_PORT}:5432
+    environment:
+      # If you need to create multiple databases you can add coma separated databases, e.g., gis,data
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASS=${POSTGRES_PASS}
+      - ALLOW_IP_RANGE=${ALLOW_IP_RANGE}
+      # Add extensions you need to be enabled by default in the DB. Default are the specified below
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,uuid-ossp
+    restart: on-failure
+    healthcheck:
+      test: "PGPASSWORD=${POSTGRES_PASS} pg_isready -h 127.0.0.1 -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+
+  iliservices:
+    build:
+      context: ..
+      dockerfile: ./.docker/Dockerfile
+    tty: true
+    environment:
+      - ILISERVICES_DB_NAME=${ILISERVICES_DB_NAME}
+      - ILISERVICES_DB_USER=${ILISERVICES_DB_USER}
+      - ILISERVICES_DB_PASS=${ILISERVICES_DB_PASS}
+      - ILISERVICES_DB_PORT=${ILISERVICES_DB_PORT}
+      - ILISERVICES_DB_HOST=${ILISERVICES_DB_HOST}
+    volumes:
+      - ${ILISERVICES_WORKSPACE}:/data
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    command: ["/app/scripts/run-docker-tests.sh"]
+volumes:
+  postgis-data:
+  dbbackups:

@@ -1,0 +1,812 @@
+INTERLIS 2.3;
+
+/** ISO 19152 LADM country profile COL Core Model.
+ * 
+ * -----------------------------------------------------------
+ * 
+ * LADM es un modelo conceptual de la realidad que concreta una ontología y establece una semántica para la administración del territorio.
+ * 
+ * -----------------------------------------------------------
+ * revision history
+ * -----------------------------------------------------------
+ * 
+ * 30.01.2018/fm : Cambio del tipo de dato del atributo Ext_Direccion de la clase Unidad Espacial a ExtDireccion; atributo ext_PID de la calse LA_Interesado cambia de OID a ExtInteresado; Cambio de cardinalidad en relacion miembros entre LA_Interesado y LA_Agrupacion_Interesados de 0..1 a 0..*
+ * 07.02.2018/fm-gc: Ajuste al tipo de dato de la unidad Peso, pasa a tener precision 1 para evitar ser tratado cmo atributo entero y aumentar su tamaño
+ * 19.02.2018/fm-gc: ampliación del dominio al tipo de dato Peso
+ * 26.02.2018/fm-lj: cambio del nombre del dominio ISO19125_Type a ISO19125_Tipo
+ * 19.04.2018/vb fm: Ajuste al constraint Fraccion, denominador mayor a 0
+ * 19.04.2018/vb fm: Cambio en la cardinalidad del atributo u_Local_Id de la clase LA_BAUnit de 0..1 a 1
+ * 17.07.2018/fm : se incluye escritura en dominio COL_FuenteAdministrativaTipo
+ * 10.08.2018/fm : Se eliminan los atributos ai_local_id y ai_espacio_de_nombres de la clase LA_Agrupacion_Interesados
+ * 27.08.2018/fm : Ajuste a la cardinalidad de asociacion puntoFuente de 1..* a 0..*
+ * 25.09.2018/at: Se ajusta la longitud del atributo Codigo_Registral_Transaccion en la clase COL_FuenteAdministrativa a 5 caracteres de acuerdo a la Resolución 3973 de 2018
+ * -----------------------------------------------------------
+ * 
+ * (c) IGAC y SNR con apoyo de la Cooperacion Suiza
+ * 
+ * -----------------------------------------------------------
+ */
+MODEL LADM_COL_v_4_0_1_Nucleo (es)
+AT "http://www.proadmintierra.info/"
+VERSION "V1.2.0"  // 2019-08-13 // =
+  IMPORTS ISO19107_PLANAS_V3_1;
+
+  UNIT
+
+    PesoColombiano [COP] EXTENDS INTERLIS.MONEY;
+
+    Area (ABSTRACT) = (INTERLIS.LENGTH * INTERLIS.LENGTH);
+
+    MetroCuadrado [m2] EXTENDS Area = (INTERLIS.m * INTERLIS.m);
+
+    Centrimetro [cm] = 1 / 100 [INTERLIS.m];
+
+  TOPIC LADM_Nucleo(ABSTRACT) =
+
+    DOMAIN
+
+      COL_AreaTipo = (
+        /** Corresponde al área gráfica de acuerdo al sistema de proyección utilizado.
+         */
+        !!@ ili2db.dispName="Area gráfica"
+        Area_Grafica,
+        /** Corresponde al área alfanumérica. En la mayoría de los casos corresponde al valor de área inscrita en los documentos que soportan la creación del objeto.
+         */
+        !!@ ili2db.dispName="Area alfanumérica"
+        Area_Alfanumerica
+      );
+
+      COL_DocumentoTipo = (
+        !!@ ili2db.dispName="Cédula de ciudadanía"
+        Cedula_Ciudadania,
+        !!@ ili2db.dispName="Cédula de extranjería"
+        Cedula_Extranjeria,
+        /** Número de identificación tributaria
+         */
+        !!@ ili2db.dispName=NIT
+        NIT,
+        !!@ ili2db.dispName=Pasaporte
+        Pasaporte,
+        !!@ ili2db.dispName="Registro civil"
+        Registro_Civil,
+        !!@ ili2db.dispName="Tarjeta de identidad"
+        Tarjeta_Identidad
+      );
+
+      /** Traducción del dominio CI_PresentationFormCode de la norma ISO 19115:2003. Indica el modo en el que se representan los datos.
+       */
+      COL_FormatoTipo = (
+        /** Definición en la ISO 19115:2003.
+         */
+        !!@ ili2db.dispName=Imagen
+        Imagen,
+        /** Archivo digital que contiene un escrito en que constan datos fidedignos o susceptibles de ser empleados como tales para probar algo.
+         */
+        !!@ ili2db.dispName=Documento
+        Documento,
+        /** Definición en la ISO 19115:2003.
+         */
+        !!@ ili2db.dispName=Mapa
+        Mapa,
+        /** Definición en la ISO 19115:2003.
+         */
+        !!@ ili2db.dispName=Video
+        Video,
+        /** Definición en la ISO 19115:2003.
+         */
+        !!@ ili2db.dispName=Otro
+        Otro
+      );
+
+      COL_FuenteEspacialTipo = (
+        /** Ilustración análoga del levantamiento catastral de un predio.
+         */
+        !!@ ili2db.dispName="Croquis de campo"
+        Croquis_Campo,
+        /** Datos tomados por un equipo GNSS sin ningún tipo de postprocesamiento.
+         */
+        !!@ ili2db.dispName="Datos crudos (GPS, Estación total, LiDAR, etc.)"
+        Datos_Crudos,
+        /** Imagen producto de la toma de fotografías aéreas o satélites, en la cual han sido corregidos los desplazamientos causados por la inclinación de la cámara o sensor y la curvatura de la superficie del terreno. Está referida a un sistema de proyección cartográfica, por lo que posee las características geométricas de un mapa con el factor adicional de que los objetos se encuentran representados de forma real en la imagen de la fotográfica.
+         */
+        !!@ ili2db.dispName=Ortofoto
+        Ortofoto,
+        /** Informe técnico de levantamiento catastral de un predio.
+         */
+        !!@ ili2db.dispName="Informe técnico"
+        Informe_Tecnico,
+        /** Registro fotográfico del levantamiento catastral de un predio.
+         */
+        !!@ ili2db.dispName="Registro fotográfico"
+        Registro_Fotografico
+      );
+
+      COL_GrupoInteresadoTipo = (
+        /** Agrupación de personas naturales.
+         */
+        !!@ ili2db.dispName="Grupo civil"
+        Grupo_Civil,
+        /** Agrupación de personas jurídicas.
+         */
+        !!@ ili2db.dispName="Grupo empresarial"
+        Grupo_Empresarial,
+        /** Agrupación de personas pertenecientes a un grupo étnico.
+         */
+        !!@ ili2db.dispName="Grupo étnico"
+        Grupo_Etnico,
+        /** Agrupación de personas naturales y jurídicas.
+         */
+        !!@ ili2db.dispName="Grupo mixto"
+        Grupo_Mixto
+      );
+
+      /** Tipo de interesado
+       */
+      COL_InteresadoTipo = (
+        /** Persona Natural
+         */
+        !!@ ili2db.dispName="Persona Natural"
+        Persona_Natural,
+        /** Persona Jurídica
+         */
+        !!@ ili2db.dispName="Persona Jurídica"
+        Persona_Juridica
+      );
+
+      /** Si ha sido situado por interpolación, de qué manera se ha hecho.
+       */
+      COL_InterpolacionTipo = (
+        /** Interpolación aislada.
+         */
+        !!@ ili2db.dispName=Aislado
+        Aislado,
+        /** Interpolación intermedia de arco.
+         */
+        !!@ ili2db.dispName="Intermedio arco"
+        Intermedio_Arco,
+        /** Interpolación intermedia de línea.
+         */
+        !!@ ili2db.dispName="Intermedio línea"
+        Intermedio_Linea
+      );
+
+      /** Indica el método utilizado para la recolección de los puntos.
+       */
+      COL_MetodoProduccionTipo = (
+        /** Aquellos que requieren una visita campo con el fin de recolectar la realidad de los bienes inmuebles.
+         */
+        !!@ ili2db.dispName="Método directo"
+        Metodo_Directo,
+        /** Aquellos métodos identificación física, jurídica y económica de los inmuebles a través del uso de sensores remotos, integración registros administrativos, modelos probabilísticos y econométricos, análisis de Big Data y fuentes secundarias como observatorios inmobiliarios, su posterior incorporación en la base catastral.
+         */
+        !!@ ili2db.dispName="Método indirecto"
+        Metodo_Indirecto,
+        /** Son los derivados participación de la comunidad en el suministro de información que sirva como insumo para el desarrollo de los procesos catastrales. Los gestores catastrales propenderán por la adopción nuevas tecnologías y procesos comunitarios que faciliten la participación los ciudadanos.
+         */
+        !!@ ili2db.dispName="Método declarativo y colaborativo"
+        Metodo_Declarativo_y_Colaborativo
+      );
+
+      COL_PuntoTipo = (
+        /** Punto tipo de control.
+         */
+        !!@ ili2db.dispName=Control
+        Control,
+        /** Puntos del levantamiento catastral.
+         */
+        !!@ ili2db.dispName=Catastro
+        Catastro,
+        /** Otro tipo de punto.
+         */
+        !!@ ili2db.dispName=Otro
+        Otro
+      );
+
+      COL_RelacionSuperficieTipo = (
+        /** Cuando la superficie del terreno o la construcción mantiene o se encuentra localizada a nivel de rasante de la zona, es decir, la línea que define la inclinación o pendiente con respecto al plano horizontal.
+         */
+        !!@ ili2db.dispName="En rasante"
+        En_Rasante,
+        /** Cuando la superficie del terreno o la construcción se encuentra por encima de la rasante de la zona.
+         */
+        !!@ ili2db.dispName="En vuelo"
+        En_Vuelo,
+        /** Cuando la superficie del terreno o la construcción se encuentra por debajo de la superficie terrestre.
+         */
+        !!@ ili2db.dispName="En subsuelo"
+        En_Subsuelo,
+        /** Cuando la superficie del terreno o la construcción presenta una condición diferente a las anteriores.
+         */
+        !!@ ili2db.dispName=Otro
+        Otro
+      );
+
+      COL_UnidadAdministrativaBasicaTipo = (
+        !!@ ili2db.dispName="Sector Administrativo del Deporte"
+        Administrativo_Del_Deporte,
+        !!@ ili2db.dispName="Sector Agropecuario, Pesquero y de Desarrollo Rural"
+        Agropecuario_Pesquero_Desarrollo_Rural,
+        !!@ ili2db.dispName="Sector Ambiente y Desarrollo Sostenible"
+        Ambiente_Desarrollo_Sostenible,
+        !!@ ili2db.dispName="Sector Ciencia y Tecnología"
+        Ciencia_Tecnologia,
+        !!@ ili2db.dispName="Sector de Comercio, Industria y Turismo"
+        Comercio_Industria_Turismo,
+        !!@ ili2db.dispName="Sector Cultura"
+        Cultura,
+        !!@ ili2db.dispName="Sector de la Defensa Nacional"
+        Defensa_Nacional,
+        !!@ ili2db.dispName="Sector Educación Nacional"
+        Educacion_Nacional,
+        !!@ ili2db.dispName="Sector Función Pública"
+        Funcion_Publica,
+        !!@ ili2db.dispName="Sector Hacienda y Crédito Público"
+        Hacienda_Credito_Publico,
+        !!@ ili2db.dispName="Sector de Igualdad y Equidad"
+        Igualdad_Equidad,
+        !!@ ili2db.dispName="Sector Inclusión Social y Reconciliación"
+        Inclusion_Social_Reconciliacion,
+        !!@ ili2db.dispName="Sector Información Estadística"
+        Informacion_Estadistica,
+        !!@ ili2db.dispName="Sector Inteligencia Estratégica y Contrainteligencia"
+        Inteligencia_Estrategica_Contrainteligencia,
+        !!@ ili2db.dispName="Sector del Interior"
+        Interior,
+        !!@ ili2db.dispName="Sector Justicia y del Derecho"
+        Justicia_Del_Derecho,
+        !!@ ili2db.dispName="Sector Minas y Energía"
+        Minas_Energia,
+        !!@ ili2db.dispName="Sector de Planeación"
+        Planeacion,
+        !!@ ili2db.dispName="Sector Presidencia de la República"
+        Presidencia_De_La_Republica,
+        !!@ ili2db.dispName="Sector Relaciones Exteriores"
+        Relaciones_Exteriores,
+        !!@ ili2db.dispName="Sector Salud y de la Protección Social"
+        Salud_Proteccion_Social,
+        !!@ ili2db.dispName="Sector de las Tecnologías de la Información y las Comunicaciones"
+        Tecnologias_Informacion_Comunicaciones,
+        !!@ ili2db.dispName="Sector del Trabajo"
+        Trabajo,
+        !!@ ili2db.dispName="Sector Transporte"
+        Transporte,
+        !!@ ili2db.dispName="Sector Vivienda, Ciudad y Territorio"
+        Vivienda_Ciudad_Territorio
+      );
+
+      Currency = -2000000000.00 .. 2000000000.00;
+
+      Integer = 0 .. 999999999;
+
+    /** Referencia a clase externa desde donde se gestiona el repositorio de archivos.
+     */
+    !!@ ili2db.dispName="Archivo fuente"
+    STRUCTURE ExtArchivo =
+      /** Fecha en la que ha sido aceptado el documento.
+       */
+      !!@ ili2db.dispName="Fecha de aceptación"
+      Fecha_Aceptacion : INTERLIS.XMLDate;
+      /** Datos que contiene el documento.
+       */
+      !!@ ili2db.dispName=Datos
+      Datos : TEXT*255;
+      /** Última fecha de extracción del documento.
+       */
+      !!@ ili2db.dispName=Extracción
+      Extraccion : INTERLIS.XMLDate;
+      /** Fecha en la que el documento es aceptado en el sistema.
+       */
+      !!@ ili2db.dispName="Fecha de grabación"
+      Fecha_Grabacion : INTERLIS.XMLDate;
+      /** Fecha en la que fue entregado el documento.
+       */
+      !!@ ili2db.dispName="Fecha de entrega"
+      Fecha_Entrega : INTERLIS.XMLDate;
+      /** Identificador único global. Corresponde al atributo de la clase en LADM.
+       */
+      !!@ ili2db.dispName="Espacio de nombres"
+      Espacio_De_Nombres : MANDATORY TEXT*255;
+      /** Identificador único local.
+       */
+      !!@ ili2db.dispName="Local ID"
+      Local_Id : MANDATORY TEXT*255;
+    END ExtArchivo;
+
+    /** Referencia a una clase externa para gestionar direcciones.
+     */
+    !!@ ili2db.dispName=Dirección
+    STRUCTURE ExtDireccion =
+      /** Valores: Estructurada y No Estructurada.
+       */
+      !!@ ili2db.dispName="Tipo de dirección"
+      Tipo_Direccion : MANDATORY (
+        !!@ ili2db.dispName=Estructurada
+        Estructurada,
+        !!@ ili2db.dispName="No estructurada"
+        No_Estructurada
+      );
+      /** Valor Booleano para distinguir si la dirección es principal.
+       */
+      !!@ ili2db.dispName="Es dirección principal"
+      Es_Direccion_Principal : BOOLEAN;
+      /** Par de valores georreferenciados (x,y) en la que se encuentra la dirección.
+       */
+      !!@ ili2db.dispName=Localización
+      Localizacion : ISO19107_PLANAS_V3_1.GM_Point3D;
+      /** Código postal.
+       */
+      !!@ ili2db.dispName="Código postal"
+      Codigo_Postal : TEXT*6;
+      /** Valores: Avenida_Calle, Avenida_Carrera, Avenida, Autopista, Circunvalar, Calle, Carrera, Diagonal, Transversal, Circular.
+       */
+      !!@ ili2db.dispName="Clase de vía principal"
+      Clase_Via_Principal : (
+        !!@ ili2db.dispName="Avenida calle"
+        Avenida_Calle,
+        !!@ ili2db.dispName="Avenida carrera"
+        Avenida_Carrera,
+        !!@ ili2db.dispName=Avenida
+        Avenida,
+        !!@ ili2db.dispName=Autopista
+        Autopista,
+        !!@ ili2db.dispName=Circunvalar
+        Circunvalar,
+        !!@ ili2db.dispName=Calle
+        Calle,
+        !!@ ili2db.dispName=Carrera
+        Carrera,
+        !!@ ili2db.dispName=Diagonal
+        Diagonal,
+        !!@ ili2db.dispName=Transversal
+        Transversal,
+        !!@ ili2db.dispName=Circular
+        Circular
+      );
+      /** Numero que acompaña a la clase de vía principal.
+       */
+      !!@ ili2db.dispName="Valor vía principal"
+      Valor_Via_Principal : TEXT*100;
+      /** Letra que acompaña al valor de la vía principal.
+       */
+      !!@ ili2db.dispName="Letra vía principal"
+      Letra_Via_Principal : TEXT*20;
+      /** Valores: Norte, Sur, Este, Oeste.
+       */
+      !!@ ili2db.dispName="Sector de la ciudad"
+      Sector_Ciudad : (
+        Norte,
+        Sur,
+        Este,
+        Oeste
+      );
+      /** Número de la vía generadora.
+       */
+      !!@ ili2db.dispName="Valor de vía generadora"
+      Valor_Via_Generadora : TEXT*100;
+      /** Letra que acompaña al valor de la vía generadora.
+       */
+      !!@ ili2db.dispName="Letra de vía generadora"
+      Letra_Via_Generadora : TEXT*20;
+      /** Distancia entre la vía generadora al acceso del predio.
+       */
+      !!@ ili2db.dispName="Número del predio"
+      Numero_Predio : TEXT*20;
+      /** Sector de donde se localiza el predio, ejemplo: Norte, Sur, Este, Oeste.
+       */
+      !!@ ili2db.dispName="Sector del predio"
+      Sector_Predio : (
+        Norte,
+        Sur,
+        Este,
+        Oeste
+      );
+      /** Complemento de la dirección.
+       */
+      !!@ ili2db.dispName=Complemento
+      Complemento : TEXT*255;
+      /** Nombre del predio, ejemplo, nombre de los predios en el sector rural. Este valor se diligencia cuando el tipo de dirección es "No_Estructurada".
+       */
+      !!@ ili2db.dispName="Nombre del predio"
+      Nombre_Predio : TEXT*255;
+    END ExtDireccion;
+
+    CLASS Oid (ABSTRACT) =
+      /** Identificador único global. Corresponde al atributo de la clase en LADM.
+       */
+      !!@ ili2db.dispName="Espacio de nombres"
+      Espacio_De_Nombres : MANDATORY TEXT*255;
+      /** Identificador único local.
+       */
+      !!@ ili2db.dispName="Local ID"
+      Local_Id : MANDATORY TEXT*255;
+    END Oid;
+
+    DOMAIN
+
+      COL_EstadoDisponibilidadTipo = (
+        /** La fuente fue convertida o recibió algún tratamiento.
+         */
+        !!@ ili2db.dispName=Convertido
+        Convertido,
+        /** Se desconoce la disponibilidad de la fuente.
+         */
+        !!@ ili2db.dispName=Desconocido
+        Desconocido,
+        /** La fuente está disponible.
+         */
+        !!@ ili2db.dispName=Disponible
+        Disponible
+      );
+
+      Real = 0.000 .. 999999999.999;
+
+    /** Es el valor de la cantidad de superficie que cubre una figura de dos dimensiones.
+     */
+    !!@ ili2db.dispName="Valores de área"
+    STRUCTURE COL_AreaValor =
+      /** Indica si el valor a registrar corresponde al área gráfica o alfanumérica de la base de datos catastral.
+       */
+      !!@ ili2db.dispName=Tipo
+      Tipo : MANDATORY COL_AreaTipo;
+      /** Corresponde al valor del área registrada en la base de datos catastral.
+       */
+      !!@ ili2db.dispName=Área
+      Area : MANDATORY 0.0 .. 99999999999999.9 [LADM_COL_v_4_0_1_Nucleo.m2];
+      /** Parametros de la proyección utilizada para el cálculo del área de la forma proj, ejemplo: 'EPSG:3116', '+proj=tmerc +lat_0=4.59620041666667 +lon_0=-74.0775079166667 +k=1 +x_0=1000000 +y_0=1000000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+       */
+      !!@ ili2db.dispName="Datos de la proyección"
+      Datos_Proyeccion : TEXT;
+    END COL_AreaValor;
+
+    /** Referencia a una clase externa para gestionar direcciones.
+     */
+    STRUCTURE ExtInteresado =
+      /** Identificador externo del interesado.
+       */
+      !!@ ili2db.dispName="Ext dirección id"
+      Ext_Direccion_ID : LADM_COL_v_4_0_1_Nucleo.LADM_Nucleo.ExtDireccion;
+      /** Imagen de la huella dactilar del interesado.
+       */
+      !!@ ili2db.dispName="Huella dactilar"
+      Huella_Dactilar : TEXT*2000;
+      /** Campo de nombre del interesado.
+       */
+      !!@ ili2db.dispName=Nombre
+      Nombre : TEXT*255;
+      /** Fotografía del interesado.
+       */
+      !!@ ili2db.dispName=Fotografía
+      Fotografia : TEXT*2000;
+      /** Firma del interesado.
+       */
+      !!@ ili2db.dispName=Firma
+      Firma : TEXT*2000;
+      /** Ruta de almacenamiento del documento escaneado del interesado.
+       */
+      !!@ ili2db.dispName="Documento escaneado"
+      Documento_Escaneado : TEXT*255;
+    END ExtInteresado;
+
+    /** Clase abstracta que permite gestionar el histórico del conjunto de clases, las cuales heredan de esta, excepto las fuentes.
+     */
+    CLASS ObjetoVersionado (ABSTRACT)
+    EXTENDS Oid =
+      /** Comienzo de la validez actual de la instancia de un objeto.
+       */
+      !!@ ili2db.dispName="Versión de comienzo de vida útil"
+      Comienzo_Vida_Util_Version : MANDATORY INTERLIS.XMLDateTime;
+      /** Finalización de la validez actual de la instancia de un objeto.
+       */
+      !!@ ili2db.dispName="Versión de fin de vida útil"
+      Fin_Vida_Util_Version : INTERLIS.XMLDateTime;
+      MANDATORY CONSTRAINT
+        Fin_Vida_Util_Version >= Comienzo_Vida_Util_Version;
+    END ObjetoVersionado;
+
+    DOMAIN
+
+      COL_FuenteAdministrativaTipo = (
+        /** Documento público es el otorgado por el funcionario público en ejercicio de sus funciones o con su intervención. Así mismo, es público el documento otorgado por un particular en ejercicio de funciones públicas o con su intervención. Cuando consiste en un escrito autorizado o suscrito por el respectivo funcionario, es instrumento público; cuando es autorizado por un notario o quien haga sus veces y ha sido incorporado en el respectivo protocolo, se denomina escritura pública.
+         */
+        !!@ ili2db.dispName="Documento público"
+        Documento_Publico,
+        /** El documento privado es aquel documento que no cumple los requisitos del documento público, es decir, es un documento que no ha sido elaborado por un funcionario público, ni ha habido intervención de éste para su elaboración.
+         */
+        !!@ ili2db.dispName="Documento privado"
+        Documento_Privado
+      );
+
+      Peso = 0.0 .. 999999999999999.0 [LADM_COL_v_4_0_1_Nucleo.COP];
+
+    /** Clase abstracta que agrupa los atributos comunes de las clases para los derechos (rights), las responsabilidades (responsabilities) y las restricciones (restrictions).
+     */
+    CLASS COL_DRR (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Descripción asociada al derecho, la responsabilidad o la restricción.
+       */
+      !!@ ili2db.dispName=Descripción
+      Descripcion : TEXT*255;
+    END COL_DRR;
+
+    /** Clase abstracta. Esta clase es la personalización en el modelo del perfil colombiano de la clase de LADM LA_Source.
+     */
+    CLASS COL_Fuente (ABSTRACT)
+    EXTENDS Oid =
+      /** Indica si la fuente está o no disponible y en qué condiciones. También puede indicar porqué ha dejado de estar disponible, si ha ocurrido.
+       */
+      !!@ ili2db.dispName="Estado de disponibilidad"
+      Estado_Disponibilidad : MANDATORY COL_EstadoDisponibilidadTipo;
+      /** Identificador del archivo fuente controlado por una clase externa.
+       */
+      !!@ ili2db.dispName="Ext archivo id"
+      Ext_Archivo_ID : LADM_COL_v_4_0_1_Nucleo.LADM_Nucleo.ExtArchivo;
+      /** Tipo de formato en el que es presentada la fuente, de acuerdo con el registro de metadatos.
+       */
+      !!@ ili2db.dispName="Tipo formato"
+      Tipo_Formato : COL_FormatoTipo;
+      /** Fecha de expedición del documento de la fuente.
+       */
+      !!@ ili2db.dispName="Fecha de documento fuente"
+      Fecha_Documento_Fuente : INTERLIS.XMLDate;
+      /** Nombre de la fuente, ejemplo: número de la resolución, número de la escritura pública o número de radicado de una sentencia.
+       */
+      Nombre : TEXT*255;
+      /** Detalle de la fuente
+       */
+      Descripcion : TEXT*255;
+      /** URL de la fuente
+       */
+      URL : TEXT*2000;
+    END COL_Fuente;
+
+    /** Traducción de la clase LA_Party de LADM. Representa a las personas que ejercen derechos y responsabilidades  o sufren restricciones respecto a una BAUnit.
+     */
+    CLASS COL_Interesado (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Identificador del interesado.
+       */
+      !!@ ili2db.dispName="Ext PID"
+      ext_PID : LADM_COL_v_4_0_1_Nucleo.LADM_Nucleo.ExtInteresado;
+      /** Nombre del interesado.
+       */
+      !!@ ili2db.dispName=Nombre
+      Nombre : TEXT*255;
+      /** Tipo de interesado
+       */
+      !!@ ili2db.dispName=Tipo_Interesado
+      Tipo_Interesado : MANDATORY COL_InteresadoTipo;
+      /** Tipo de documento de identificación del interesado
+       */
+      Tipo_Documento : COL_DocumentoTipo;
+      /** Número del documento del interesado
+       */
+      Numero_Documento : TEXT*255;
+    END COL_Interesado;
+
+    /** Relaciona los interesados que ostentan la propiedad, posesión u ocupación de un predio. Se registra el grupo en si e independientemete las personas por separado.
+     */
+    CLASS COL_AgrupacionInteresados (ABSTRACT)
+    EXTENDS COL_Interesado =
+      /** Indica el tipo de agrupación del que se trata.
+       */
+      !!@ ili2db.dispName=Tipo
+      Tipo : MANDATORY COL_GrupoInteresadoTipo;
+    END COL_AgrupacionInteresados;
+
+    /** Especialización de la clase COL_Fuente para almacenar aquellas fuentes constituidas por documentos (documento hipotecario, documentos notariales, documentos históricos, etc.) que documentan la relación entre instancias de interesados y de predios.
+     */
+    CLASS COL_FuenteAdministrativa (ABSTRACT)
+    EXTENDS COL_Fuente =
+      /** Tipo de documento de fuente administrativa.
+       */
+      !!@ ili2db.dispName=Tipo
+      Tipo : MANDATORY COL_FuenteAdministrativaTipo;
+      Fecha_Fin : INTERLIS.XMLDate;
+    END COL_FuenteAdministrativa;
+
+    /** De forma genérica, representa el objeto territorial legal (Catastro 2014) que se gestiona en el modelo, en este caso, la parcela catastral o predio. Es independiente del conocimiento de su realidad espacial y se centra en su existencia conocida y reconocida.
+     */
+    CLASS COL_UnidadAdministrativaBasica (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Nombre que recibe la unidad administrativa básica, en muchos casos toponímico, especialmente en terrenos rústicos.
+       */
+      !!@ ili2db.dispName=Nombre
+      Nombre : TEXT*255;
+      /** Tipo de derecho que la reconoce.
+       */
+      !!@ ili2db.dispName=Tipo
+      Tipo : MANDATORY COL_UnidadAdministrativaBasicaTipo;
+    END COL_UnidadAdministrativaBasica;
+
+    /** Representación gráfica del terreno, construcción, unidad de construcción y/o servidumbre de paso.
+     */
+    CLASS COL_UnidadEspacial (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Registros del área en diferentes sistemas.
+       */
+      !!@ ili2db.dispName=Área
+      Area : LIST {0..*} OF LADM_COL_v_4_0_1_Nucleo.LADM_Nucleo.COL_AreaValor;
+      /** Corresponde al atributo extAddressID de la clase en LADM.
+       */
+      !!@ ili2db.dispName="Ext dirección id"
+      Ext_Direccion_ID : LIST {0..*} OF LADM_COL_v_4_0_1_Nucleo.LADM_Nucleo.ExtDireccion;
+      /** Corresponde al atributo label de la clase en LADM.
+       */
+      !!@ ili2db.dispName=Etiqueta
+      Etiqueta : TEXT*255;
+      /** Corresponde al atributo surfaceRelation de la clase en LADM.
+       */
+      !!@ ili2db.dispName="Relación superficie"
+      Relacion_Superficie : COL_RelacionSuperficieTipo;
+      /** Materialización del método createArea(). Almacena de forma permanente la geometría de tipo poligonal.
+       */
+      !!@ ili2db.dispName=Geometría
+      Geometria : ISO19107_PLANAS_V3_1.GM_MultiSurface3D;
+    END COL_UnidadEspacial;
+
+    /** Agrupa unidades espaciales, es decir, representaciones geográficas de las unidades administrativas básicas (clase LA_BAUnit) para representar otras unidades espaciales que se forman en base a estas, como puede ser el caso de los polígonos catastrales.
+     */
+    CLASS COL_AgrupacionUnidadesEspaciales (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Nivel jerárquico de la agrupación, dentro del anidamiento de diferentes agrupaciones.
+       */
+      !!@ ili2db.dispName="Nivel jerárquico"
+      Nivel_Jerarquico : MANDATORY Integer;
+      /** Definición de la agrupación.
+       */
+      !!@ ili2db.dispName=Etiqueta
+      Etiqueta : TEXT*255;
+      /** Nombre que recibe la agrupación.
+       */
+      !!@ ili2db.dispName=Nombre
+      Nombre : TEXT*255;
+      /** Punto de referencia de toda la agrupación, a modo de centro de masas.
+       */
+      !!@ ili2db.dispName="Punto de referencia"
+      Punto_Referencia : ISO19107_PLANAS_V3_1.GM_Point3D;
+    END COL_AgrupacionUnidadesEspaciales;
+
+    ASSOCIATION col_baunitComoInteresado =
+      interesado -- {0..*} COL_Interesado;
+      unidad (EXTERNAL) -- {0..*} COL_UnidadAdministrativaBasica;
+    END col_baunitComoInteresado;
+
+    ASSOCIATION col_baunitRrr =
+      unidad -- {1} COL_UnidadAdministrativaBasica;
+      rrr -- {1..*} COL_DRR;
+    END col_baunitRrr;
+
+    ASSOCIATION col_miembros =
+      interesado -- {2..*} COL_Interesado;
+      agrupacion -<> {0..*} COL_AgrupacionInteresados;
+      participacion : 0.0000000000 .. 1.0000000000;
+    END col_miembros;
+
+    ASSOCIATION col_rrrFuente =
+      fuente_administrativa -- {1..*} COL_FuenteAdministrativa;
+      rrr -- {0..*} COL_DRR;
+    END col_rrrFuente;
+
+    ASSOCIATION col_ueBaunit =
+      ue (EXTERNAL) -- {0..*} COL_UnidadEspacial;
+      baunit -- {0..*} COL_UnidadAdministrativaBasica;
+    END col_ueBaunit;
+
+    ASSOCIATION col_unidadFuente =
+      fuente_administrativa -- {0..*} COL_FuenteAdministrativa;
+      unidad -- {0..*} COL_UnidadAdministrativaBasica;
+    END col_unidadFuente;
+
+    /** Clase especializada para la administración de los tipos de puntos.
+     */
+    CLASS COL_Punto (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Posición de interpolación.
+       */
+      !!@ ili2db.dispName="Posición interpolación"
+      Posicion_Interpolacion : COL_InterpolacionTipo;
+      /** Clasificación del tipo de punto identificado en el levantamiento catastral.
+       */
+      !!@ ili2db.dispName="Tipo de punto"
+      PuntoTipo : MANDATORY COL_PuntoTipo;
+      /** Indica el método utilizado para la recolección de los puntos.
+       */
+      !!@ ili2db.dispName="Método de producción"
+      MetodoProduccion : MANDATORY COL_MetodoProduccionTipo;
+      /** Geometria punto para administración de los objetos: punto de lindero, punto levantamiento y punto de control.
+       */
+      !!@ ili2db.dispName=Geometría
+      Geometria : MANDATORY ISO19107_PLANAS_V3_1.GM_Point3D;
+    END COL_Punto;
+
+    ASSOCIATION col_responsableFuente =
+      fuente_administrativa (EXTERNAL) -- {0..*} COL_FuenteAdministrativa;
+      interesado -- {0..*} COL_Interesado;
+    END col_responsableFuente;
+
+    ASSOCIATION col_ueJerarquiaGrupo =
+      agrupacion -<> {0..1} COL_AgrupacionUnidadesEspaciales;
+      elemento -- {0..*} COL_AgrupacionUnidadesEspaciales;
+    END col_ueJerarquiaGrupo;
+
+    /** Especialización de la clase COL_Fuente para almacenar las fuentes constituidas por datos espaciales (entidades geográficas, imágenes de satélite, vuelos fotogramétricos, listados de coordenadas, mapas, planos antiguos o modernos, descripción de localizaciones, etc.) que documentan técnicamente la relación entre instancias de interesados y de predios
+     */
+    CLASS COL_FuenteEspacial (ABSTRACT)
+    EXTENDS COL_Fuente =
+      /** Tipo de fuente espacial.
+       */
+      !!@ ili2db.dispName=Tipo
+      Tipo : MANDATORY COL_FuenteEspacialTipo;
+      /** Metadato de la fuente espacial.
+       */
+      !!@ ili2db.dispName=Metadato
+      Metadato : MTEXT;
+    END COL_FuenteEspacial;
+
+    ASSOCIATION col_puntoReferencia =
+      ue (EXTERNAL) -- {0..1} COL_UnidadEspacial;
+      punto -- {0..1} COL_Punto;
+    END col_puntoReferencia;
+
+    ASSOCIATION col_rrrInteresado =
+      rrr (EXTERNAL) -- {0..*} COL_DRR;
+      interesado -- {0..1} COL_Interesado;
+    END col_rrrInteresado;
+
+    ASSOCIATION col_ueUeGrupo =
+      parte -- {0..*} COL_UnidadEspacial;
+      todo -- {0..*} COL_AgrupacionUnidadesEspaciales;
+    END col_ueUeGrupo;
+
+    /** Traducción al español de la clase LA_BoundaryFaceString de LADM. Define los linderos y a su vez puede estar definida por una descrición textual o por dos o más puntos. Puede estar asociada a una fuente espacial o más.
+     */
+    CLASS COL_CadenaCarasLimite (ABSTRACT)
+    EXTENDS ObjetoVersionado =
+      /** Geometría lineal que define el lindero. Puede estar asociada a geometrías de tipo punto que definen sus vértices o ser una entidad lineal independiente.
+       */
+      !!@ ili2db.dispName=Geometría
+      Geometria : ISO19107_PLANAS_V3_1.GM_Curve3D;
+      /** Descripción de la localización, cuando esta se basa en texto.
+       */
+      !!@ ili2db.dispName="Localización textual"
+      Localizacion_Textual : TEXT*255;
+    END COL_CadenaCarasLimite;
+
+    ASSOCIATION col_puntoFuente =
+      fuente_espacial -- {0..*} COL_FuenteEspacial;
+      punto -- {0..*} COL_Punto;
+    END col_puntoFuente;
+
+    ASSOCIATION col_cclFuente =
+      ccl -- {0..*} COL_CadenaCarasLimite;
+      fuente_espacial -- {0..*} COL_FuenteEspacial;
+    END col_cclFuente;
+
+    ASSOCIATION col_ueFuente =
+      ue (EXTERNAL) -- {0..*} COL_UnidadEspacial;
+      fuente_espacial -- {0..*} COL_FuenteEspacial;
+    END col_ueFuente;
+
+    ASSOCIATION col_baunitFuente =
+      fuente_espacial -- {0..*} COL_FuenteEspacial;
+      unidad (EXTERNAL) -- {0..*} COL_UnidadAdministrativaBasica;
+    END col_baunitFuente;
+
+    ASSOCIATION col_menosCcl =
+      ccl_menos -- {0..*} COL_CadenaCarasLimite;
+      ue_menos (EXTERNAL) -- {0..*} COL_UnidadEspacial;
+    END col_menosCcl;
+
+    ASSOCIATION col_masCcl =
+      ccl_mas -- {0..*} COL_CadenaCarasLimite;
+      ue_mas (EXTERNAL) -- {0..*} COL_UnidadEspacial;
+    END col_masCcl;
+
+    ASSOCIATION col_puntoCcl =
+      punto -- {2..*} COL_Punto;
+      ccl -- {0..*} COL_CadenaCarasLimite;
+    END col_puntoCcl;
+
+  END LADM_Nucleo;
+
+END LADM_COL_v_4_0_1_Nucleo.
