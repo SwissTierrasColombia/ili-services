@@ -14,7 +14,7 @@ Este proyecto ha sido posible gracias al trabajo excepcional y la dedicación de
 1. Clona el repositorio en tu máquina local:
 
     ```shell
-    git clone https://github.com/ceicol/ili-services.git
+    git clone https://github.com/swisstierrascolombia/ili-services.git
     ```
 
 2. Configura un entorno virtual e instala las dependencias requeridas:
